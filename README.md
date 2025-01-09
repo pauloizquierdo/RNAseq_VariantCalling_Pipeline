@@ -3,7 +3,9 @@ Notes:
   /mnt/gs21/scratch/seguraab/SW_Cold/00_raw_data.
 
   - The FASTQ files have the suffix .filter, which suggests that the reads were filtered for quality control. However, I could not find additional information to confirm this.
- 
+
+The pipeline described in this repository follows the best practices outlined in the following link:
+https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels
 ________________________________________________________  
   Scripts:
 1.	fastqc: Quality Check
