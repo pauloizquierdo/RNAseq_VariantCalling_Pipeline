@@ -1,42 +1,88 @@
-Notes:
-  - The FASTQ files used in this pipeline are located in the folder:
-  /mnt/gs21/scratch/seguraab/SW_Cold/00_raw_data.
+# RNA-seq Variant Calling Pipeline (GATK Best Practices)
 
-  - The FASTQ files have the suffix .filter, which suggests that the reads were filtered for quality control. However, I could not find additional information to confirm this.
+This repository contains a complete RNA-seq variant discovery pipeline based on the GATK Best Practices for SNP and Indel calling from short-read RNA-seq data.
 
-The pipeline described in this repository follows the best practices outlined in the following link:
-https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels
-________________________________________________________  
-  Scripts:
-1.	fastqc: Quality Check
-  -	FASTQC was run on all FASTQ files to assess their quality.
-  -	All files had 0 sequences flagged as poor quality, and the sequence lengths ranged from 49–150 bp, suggesting that the reads were already clean.
-2.	genome_index_star: Genome Index Creation
-  - Pvirgatumvar_AP13HAP1_772_v6.0.hardmasked.fa
-  -	This script creates the genome index required for the STAR aligner.
-3.	mapping_star: RNA Read Mapping
-  -	Maps RNA-seq reads to a reference genome using the STAR aligner.
-4.	mapping_star_pass2: Two-Pass Mapping
-  -	Implements STAR’s two-pass mode, as recommended by GATK, to improve alignment accuracy around novel splice junctions.
-5.	markduplicates: Duplicate Read Identification
-  -	Identifies and marks duplicate reads in the BAM file.
-6.	SplitNCigarReads: Splitting Reads with N in CIGAR Strings
-  -	Splits reads containing N in the CIGAR string into multiple supplementary alignments.
-  -	Hard-clips mismatching overhangs and adjusts mapping qualities to follow DNA conventions.
-7.	NamesortBam: Name-Sorting BAM Files
-  -	The outputs from SplitNCigarReads are sorted and indexed for downstream processing.
-8.	HaplotypeCaller: Variant Calling
-  -	Identifies variants in the RNA-seq data using GATK’s HaplotypeCaller.
-9.	GenomicsDBImport: Database Creation
-  -	Imports single-sample GVCFs (per chromosome or scaffold) into GenomicsDB for joint genotyping.
-10.	Genotype: Joint Genotyping
-  -	Performs joint genotyping on pre-called samples to produce a multi-sample VCF file.
-11.	concatenate: Merge Variants
-  -	Combines variant files from all chromosomes or scaffolds into a single VCF file.
-12.	bcf_pruning: Variant Filtering
-  -	Filters SNPs and indels, retaining only variants with:
-    -	Quality > 40
-    -	Depth of coverage > 20
-    -	Missing data < 0.1.
-13.	annotation: Variant Annotation
-  -	Annotates the final VCF file using the Pvirgatumvar_AP13HAP1_772_v6.0 GFF3 file.
+🔗 Reference:  
+[GATK RNA-seq Best Practices Guide](https://gatk.broadinstitute.org/hc/en-us/articles/360035531192-RNAseq-short-variant-discovery-SNPs-Indels)
+
+---
+
+## 📁 Input Data
+
+The FASTQ files used in this pipeline are located at:
+/mnt/gs21/scratch/seguraab/SW_Cold/00_raw_data
+
+---
+
+## 🔬 Pipeline Overview
+
+The steps below follow GATK's best practices for RNA-seq variant discovery:
+
+### 1. `fastqc`: Quality Control
+- FASTQC was run on all FASTQ files to evaluate read quality.
+- No sequences were flagged as poor quality.
+- Sequence lengths ranged from 49–150 bp, indicating pre-cleaned reads.
+
+### 2. `genome_index_star`: STAR Genome Indexing
+- Creates a STAR genome index using:
+Pvirgatumvar_AP13HAP1_772_v6.0.hardmasked.fa
+
+### 3. `mapping_star`: First-Pass Read Mapping
+- Aligns RNA-seq reads to the reference genome using STAR.
+
+### 4. `mapping_star_pass2`: Two-Pass Mapping
+- Implements STAR's two-pass mapping mode to improve alignment across novel splice junctions, as recommended by GATK.
+
+### 5. `markduplicates`: Mark Duplicates
+- Uses Picard to identify and mark PCR duplicates in BAM files.
+
+### 6. `SplitNCigarReads`: Read Processing
+- Splits reads with `N` operators in the CIGAR string into separate exonic segments.
+- Hard-clips mismatching overhangs.
+- Adjusts mapping qualities to conform to DNA variant calling conventions.
+
+### 7. `namesortBam`: Name Sort and Index
+- BAM files from `SplitNCigarReads` are name-sorted and indexed for use with GATK tools.
+
+### 8. `HaplotypeCaller`: Variant Calling
+- Calls SNPs and indels using GATK's `HaplotypeCaller` in GVCF mode.
+
+### 9. `GenomicsDBImport`: GVCF Consolidation
+- Combines individual sample GVCFs (by chromosome or scaffold) into a GenomicsDB database.
+
+### 10. `Genotype`: Joint Genotyping
+- Performs joint genotyping across all samples to generate a multi-sample VCF.
+
+### 11. `concatenate`: Variant Merging
+- Merges VCFs from all scaffolds or chromosomes into a single file.
+
+### 12. `bcf_pruning`: Variant Filtering
+- Applies filters to retain high-confidence variants:
+- Quality > 40
+- Depth > 20
+- Missing data < 10%
+
+### 13. `annotation`: Functional Annotation
+- Annotates variants using the `Pvirgatumvar_AP13HAP1_772_v6.0.gff3` annotation file.
+
+---
+
+## 🧬 Notes
+
+- All reference files used (e.g., reference genome, GFF3) are from the **P. virgatum AP13 v6.0** assembly.
+- This pipeline is designed for **RNA-seq-based variant discovery** and may require modification for DNA-seq or other data types.
+
+---
+
+## ✅ Output
+
+- Cleaned and aligned BAM files
+- Multi-sample VCF with high-confidence SNPs and indels
+- Annotated variants linked to gene features
+
+---
+
+
+
+
+
